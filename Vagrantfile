@@ -40,7 +40,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     salt.run_highstate  = true
 
     # Debug provisioner
-    # salt.verbose        = true
+     salt.verbose        = true
 
   end
 

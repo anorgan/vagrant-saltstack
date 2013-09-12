@@ -1,15 +1,46 @@
+# Ty https://github.com/visualphoenix/awesome-saltstack
+
+# This doesn't run - can't create www-data user
+www-data:
+  user.present:
+    - shell: /sbin/nologin
+    - home: False
+    - system: False
+
+{% set php = "php" %}
+{% if grains['os_family'] == 'Debian' %}
+  {% set v = "php5" %}
+{% endif %}
+
+
+{% if grains['os_family'] == 'RedHat' %}
+php-epel:
+  cmd.run:
+    - name: curl -L http://www.atomicorp.com/installers/atomic | grep -v "check_input \"" | sudo sh
+    - unless: test -e /etc/yum.repos.d/atomic.repo
+{% endif %}
+
 php5-pkgs:
   pkg.installed:
+    {% if grains['os_family'] == 'RedHat' %}
+    - repo: remi
+    - require:
+      - cmd: php-epel
+      # - user: www-data
+    {% endif %}
     - names:
-      - php5
-      - php5-mysql
-      - php5-curl
-      - php5-cli
-      - php5-cgi
-      - php5-dev
+      - {{ php }}
+      {% if grains['os_family'] == 'RedHat' %}
+      - php-common
+      {% endif %}
+      - {{ php }}-mysql
+      - {{ php }}-curl
+      - {{ php }}-cli
+      - {{ php }}-cgi
+      - {{ php }}-dev
       - php-pear
-      - php5-gd
-      - php5-imagick
+      - {{ php }}-gd
+      - {{ php }}-imagick
 
 apache2:
   pkg:
@@ -28,7 +59,7 @@ apache2:
     - require:
       - pkg: apache2
 
-{% if grains['os'] == 'Ubuntu'%}
+{% if grains['os'] == 'Ubuntu' %}
 mariadb-server-5.5:
   cmd.run:
     - name: sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
