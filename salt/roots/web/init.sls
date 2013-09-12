@@ -1,5 +1,3 @@
-{% if grains['os'] == 'Ubuntu' %}
-
 php5-pkgs:
   pkg.installed:
     - names:
@@ -16,7 +14,21 @@ php5-pkgs:
 apache2:
   pkg:
     - installed
+    {% if grains['os'] == 'RedHat' or grains['os'] == 'Fedora' or grains['os'] == 'CentOS'%}
+    - name: httpd
+    {% elif grains['os'] == 'Debian' or grains['os'] == 'Ubuntu'%}
+    - name: apache2
+    {% endif %}
+  service:
+    - running
+    {% if grains['os'] == 'RedHat' or grains['os'] == 'Fedora' or grains['os'] == 'CentOS'%}
+    - name: httpd
+    {% endif %}
+    - enable: True
+    - require:
+      - pkg: apache2
 
+{% if grains['os'] == 'Ubuntu'%}
 mariadb-server-5.5:
   cmd.run:
     - name: sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
@@ -33,9 +45,8 @@ mariadb-server-5.5:
     - refresh: True
     - require:
       - cmd: mariadb-server-5.5
+{% endif %}
 
 git:
   pkg:
     - installed
-
-{% endif %}
