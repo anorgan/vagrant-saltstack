@@ -3,45 +3,43 @@
 
 VAGRANTFILE_API_VERSION = "2"
 
+boxes = [
+  { :name => :web,      :role => 'web_dev',         :ip => '192.168.33.10', :ssh_port => 2201, :http_fwd => 9980, :cpus => 1, :memory => 256, :shares => true },
+  { :name => :db,       :role => 'data_dev',        :ip => '192.168.33.20', :ssh_port => 2202, :mysql_fwd => 9936, :cpus => 1, :memory => 256 },
+]
+
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # Defaults
   config.vm.box     = "centos"
   # config.vm.box_url = "http://cloud-images.ubuntu.com/quantal/current/quantal-server-cloudimg-vagrant-i386-disk1.box"
   # config.vm.box_url = "http://developer.nrel.gov/downloads/vagrant-boxes/CentOS-6.4-i386-v20130427.box"
 
-  # Host localhost:8080 translates to guest localhost:80
-  config.vm.network "forwarded_port", guest: 80, host: 8080
-  
-  # To access virtual box through its own IP, also needed for NFS (host needs to support NFS)
-  config.vm.network "private_network", ip: "192.168.56.10"
-  
-  # IP via DHCP
-  # config.vm.network "public_network"
-
-  # Bernie MAC
-  # config.vm.base_mac = "080027FB619F"
-
-  config.vm.host_name = "anorgan.dev"
-
-  config.vm.provider :virtualbox do |vb|
-    # Don't boot with headless mode
-    # vb.gui = true
-
-    # vb.customize ["modifyvm", :id, "--memory", "512"]
-  end
-
-
   # Salt configuration - add ", :nfs => true" for NFS mount
   config.vm.synced_folder "salt/roots/", "/srv/salt/"
 
-  # Provision with salt
-  config.vm.provision :salt do |salt|
+  boxes.each do |box|
+    config.vm.define box[:name]  do |config|
+      config.vm.provider "virtualbox" do |vb|
+        vb.gui = true
+        vb.customize ["modifyvm", :id, "--memory", box[:memory]] if box[:memory]
+        vb.customize ["modifyvm", :id, "--cpus", box[:cpus]] if box[:cpus]
+      end
 
-    salt.minion_config  = "salt/minion"
-    salt.run_highstate  = true
+      config.vm.network "forwarded_port", guest: 80, host: box[:http_fwd] if box[:http_fwd]
+      config.vm.network "forwarded_port", guest: 22, host: box[:ssh_port]
+      config.vm.network "private_network", ip: box[:ip]
+      config.vm.host_name ="%s.anorgan.dev" % box[:name].to_s
 
-    # Debug provisioner
-     salt.verbose        = true
+      # Provision with salt
+      config.vm.provision :salt do |salt|
 
+        salt.minion_config  = "salt/minion"
+        salt.run_highstate  = true
+
+        # Debug provisioner
+        # salt.verbose        = true
+
+      end
+    end
   end
-
 end
