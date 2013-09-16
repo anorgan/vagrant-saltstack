@@ -4,8 +4,8 @@
 VAGRANTFILE_API_VERSION = "2"
 
 boxes = [
-  { :name => :web,      :role => 'web_dev',         :ip => '192.168.33.10', :ssh_port => 2201, :http_fwd => 9980, :cpus => 1, :memory => 256, :shares => true },
-  { :name => :db,       :role => 'data_dev',        :ip => '192.168.33.20', :ssh_port => 2202, :mysql_fwd => 9936, :cpus => 1, :memory => 256 },
+  { :name => :web,   :ip => '192.168.33.10', :ssh_port => 2201, :http_fwd => 9980, :cpus => 1, :memory => 256, :shares => true },
+  { :name => :db,    :ip => '192.168.33.20', :ssh_port => 2202, :mysql_fwd => 9936, :cpus => 1, :memory => 256 },
 ]
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|

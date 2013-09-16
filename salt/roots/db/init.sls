@@ -10,10 +10,14 @@ mariadb-server-5.5:
     - name: /etc/apt/sources.list
     - text: deb http://ftp.osuosl.org/pub/mariadb/repo/5.5/ubuntu quantal main
     - skip_verify: True
+  {% elif grains['os_family'] == 'RedHat' %}
+  cmd.run:
+    - name: rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm && yum --enablerepo=remi-test --disablerepo=remi install compat mysql55
+    - unless: test -e /etc/yum.repos.d/atomic.repo
   {% endif %}
   pkg:
     {% if grains['os_family'] == 'RedHat' %}
-    - name: mariadb
+    - name: MariaDB-server
     {% endif %}
     - installed
     - refresh: True
