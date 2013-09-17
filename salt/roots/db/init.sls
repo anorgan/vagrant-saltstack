@@ -1,3 +1,16 @@
+{% if grains['os_family'] == 'RedHat' %}
+/etc/yum.repos.d/MariaDB.repo:
+  file.managed:
+    - source: salt://db/MariaDB.repo
+    - user: root
+    - group: root
+    - mode: 644
+
+mariadb-client:
+  pkg.installed:
+    - name: MariaDB-client
+
+{% endif %}
 mariadb-server-5.5:
   {% if grains['os'] == 'Ubuntu' %}
   cmd.run:
@@ -10,18 +23,15 @@ mariadb-server-5.5:
     - name: /etc/apt/sources.list
     - text: deb http://ftp.osuosl.org/pub/mariadb/repo/5.5/ubuntu quantal main
     - skip_verify: True
-  {% elif grains['os_family'] == 'RedHat' %}
-  cmd.run:
-    - name: rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm && yum --enablerepo=remi-test --disablerepo=remi install compat mysql55
-    - unless: test -e /etc/yum.repos.d/atomic.repo
   {% endif %}
   pkg:
     {% if grains['os_family'] == 'RedHat' %}
     - name: MariaDB-server
     {% endif %}
     - installed
-    - refresh: True
     {% if grains['os'] == 'Ubuntu' %}
     - require:
       - cmd: mariadb-server-5.5
+    {% elif grains['os_family'] == 'RedHat' %}
+    
     {% endif %}

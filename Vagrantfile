@@ -4,8 +4,13 @@
 VAGRANTFILE_API_VERSION = "2"
 
 boxes = [
-  { :name => :web,   :ip => '192.168.33.10', :ssh_port => 2201, :http_fwd => 9980, :cpus => 1, :memory => 256, :shares => true },
-  { :name => :db,    :ip => '192.168.33.20', :ssh_port => 2202, :mysql_fwd => 9936, :cpus => 1, :memory => 256 },
+  { :name => :web1,   :ip => '192.168.33.10', :ssh_port => 2201, :http_fwd => 9980, :cpus => 1, :memory => 256, :shares => true },
+  # { :name => :web2,   :ip => '192.168.33.11', :ssh_port => 2202, :http_fwd => 9980, :cpus => 1, :memory => 256, :shares => true },
+  # { :name => :web3,   :ip => '192.168.33.12', :ssh_port => 2203, :http_fwd => 9980, :cpus => 1, :memory => 256, :shares => true },
+
+  { :name => :db1,    :ip => '192.168.33.20', :ssh_port => 2211, :mysql_fwd => 9936, :cpus => 1, :memory => 256 },
+  # { :name => :db2,    :ip => '192.168.33.21', :ssh_port => 2212, :mysql_fwd => 9936, :cpus => 1, :memory => 256 },
+  # { :name => :db3,    :ip => '192.168.33.22', :ssh_port => 2213, :mysql_fwd => 9936, :cpus => 1, :memory => 256 },
 ]
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -20,12 +25,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   boxes.each do |box|
     config.vm.define box[:name]  do |config|
       config.vm.provider "virtualbox" do |vb|
-        vb.gui = true
+        # vb.gui = true
         vb.customize ["modifyvm", :id, "--memory", box[:memory]] if box[:memory]
         vb.customize ["modifyvm", :id, "--cpus", box[:cpus]] if box[:cpus]
       end
 
       config.vm.network "forwarded_port", guest: 80, host: box[:http_fwd] if box[:http_fwd]
+      config.vm.network "forwarded_port", guest: 3306, host: box[:http_fwd] if box[:http_fwd]
       config.vm.network "forwarded_port", guest: 22, host: box[:ssh_port]
       config.vm.network "private_network", ip: box[:ip]
       config.vm.host_name ="%s.anorgan.dev" % box[:name].to_s
@@ -37,7 +43,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         salt.run_highstate  = true
 
         # Debug provisioner
-        # salt.verbose        = true
+        salt.verbose        = true
 
       end
     end
